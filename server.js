@@ -4,6 +4,8 @@ require('dotenv').config({path:'./config/.env'})
 const morgan = require('morgan')
 const mainRouter = require('./routes/mainRouter')
 const app = express();
+const cors = require('cors');
+app.use(cors());
 PORT=process.env.PORT;
 
 require('./db/database');
