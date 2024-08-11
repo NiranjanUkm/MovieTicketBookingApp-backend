@@ -2,9 +2,9 @@ const express = require('express')
 const router = express.Router()
 
 const asyncHandler = require('../../utils/asyncHandler');
-const { addUsers } = require('../../controllers/users/userController');
+const { updateProfile } = require('../../controllers/users/profileUserController');
 
-router.post('/',asyncHandler(addUsers))
+router.put('/updateProfile',asyncHandler(updateProfile))
 
 module.exports = router;
 
