@@ -3,7 +3,7 @@ const router = express.Router()
 
 const asyncHandler = require('../../utils/asyncHandler');
 const { addTheatre } = require('../../controllers/theatres/theatreController');
-const authenticate = require('../../middleware/autehnticate');
+const authenticate = require('../../middleware/authenticate');
 
 router.post('/',authenticate, asyncHandler(addTheatre))
 

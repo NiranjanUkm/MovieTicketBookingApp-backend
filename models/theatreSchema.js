@@ -8,25 +8,20 @@ const theatreSchema = new mongoose.Schema({
         maxlength: [100, 'Theatre name must be less than 100 characters']
     },
     city: {
-        type: mongoose.Schema.Types.ObjectId, 
+        type: mongoose.Schema.Types.ObjectId,
         required: [true, 'City is required'],
-        ref: 'City'
+        ref: 'Cities', // Ensure this matches your City model
     },
     beverages: {
         type: Boolean,
-        default: false
+        default: false,
     },
-    movies: {
-        type: [String],
-        validate: {
-            validator: function (v) {
-                return Array.isArray(v) && v.length > 0 && v.every(item => typeof item === 'string');
-            },
-            message: 'Movies should be a non-empty array of strings'
-        }
-    }
+    movies: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Movies', // Reference to the Movies schema
+    }],
 }, {
-    timestamps: true
+    timestamps: true,
 });
 
 const TheatreModel = mongoose.model('Theatres', theatreSchema);

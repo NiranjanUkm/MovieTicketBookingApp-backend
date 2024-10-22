@@ -4,50 +4,25 @@ const profileUserSchema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, 'Name is required'],
-        minlength: [3, 'Name must be at least 3 characters long']
+        minlength: [2, 'Name must be at least 2 characters long'],
     },
     email: {
         type: String,
         required: [true, 'Email is required'],
-        unique: true,
-        match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email']
+        match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email'],
+        set: value => value.toLowerCase(), // Normalize email
     },
     phone: {
-        type: Number,
+        type: String,
         required: [true, 'Phone number is required'],
-        validate: {
-            validator: function (v) {
-                return /\d{10}/.test(v);
-            },
-            message: props => `${props.value} is not a valid phone number!`
-        }
+        match: [/^\+?[1-9]\d{1,14}$/, 'Please enter a valid phone number'], // E.164 format
     },
-    Address: {
-        h_name: {
-            type: String,
-            required: [true, 'House name is required']
-        },
-        street: {
-            type: String,
-            required: [true, 'Street is required']
-        },
-        city: {
-            type: String,
-            required: [true, 'City is required']
-        },
-        pin: {
-            type: Number,
-            required: [true, 'PIN code is required'],
-            validate: {
-                validator: function (v) {
-                    return /\d{6}/.test(v);
-                },
-                message: props => `${props.value} is not a valid PIN code!`
-            }
-        }
-    }
+    address: {
+        type: String,
+        default: '', // Default value for address
+    },
 }, {
-    timestamps: true
+    timestamps: true // Automatically create createdAt and updatedAt fields
 });
 
 const ProfileUserModel = mongoose.model('ProfileUsers', profileUserSchema);
