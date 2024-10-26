@@ -18,8 +18,13 @@ const theatreSchema = new mongoose.Schema({
     },
     movies: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Movies', // Reference to the Movies schema
+        ref: 'Movies',
     }],
+    ticketPrice: {
+        type: Number,
+        required: [true, 'Ticket price is required'],
+        min: [0, 'Ticket price cannot be negative']
+    }
 }, {
     timestamps: true,
 });

@@ -5,7 +5,7 @@ const asyncHandler = require('../../utils/asyncHandler');
 const { addTheatre } = require('../../controllers/theatres/theatreController');
 const authenticate = require('../../middleware/authenticate');
 
-router.post('/',authenticate, asyncHandler(addTheatre))
+router.post('/addTheatre',authenticate, asyncHandler(addTheatre))
 
 module.exports = router;
 

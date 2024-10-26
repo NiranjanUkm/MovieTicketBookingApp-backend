@@ -1,38 +1,82 @@
-const AuthUserModel = require('../../models/authUserSchema');
-const jwt = require('jsonwebtoken');
+// controllers/users/authUserController.js
+
+const User = require('../../models/authUserSchema');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-// Register
+// Register a new user (isAdmin will always be false for frontend registration)
 exports.register = async (req, res) => {
-    const { username, email, password, confirmPassword, isAdmin } = req.body;
+    console.log('Received request body:', req.body); // Add this line to debug
+    const { username, email, password, confirmPassword } = req.body;
+    console.log('Password Length:', password.length, 'ConfirmPassword Length:', confirmPassword.length);
+
+    console.log('Password (trimmed):', password.trim().length);
+    console.log("Password:", password);
+    console.log('Password Length (trimmed):', password.trim().length);
+    console.log("Confirm Password:", confirmPassword);
 
 
-    const user = new AuthUserModel({ username, email, password, confirmPassword, isAdmin });
-    await user.save();
+    if (password.trim() !== confirmPassword.trim()) {
+        return res.status(400).json({ message: "Passwords do not match" });
+    }
 
-    const token = jwt.sign({ _id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, {
-        expiresIn: '1h'
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+        return res.status(400).json({ message: "User already exists" });
+    }
+
+   
+
+    const user = await User.create({
+        username,
+        email,
+        password,
+        // confirmPassword: hashedPassword,
+        isAdmin: false  // Always set to false on frontend registration
     });
 
-    res.status(201).json({ token });
-
+    if (user) {
+        res.status(201).json({
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+            token: jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' })
+        });
+    } else {
+        res.status(400).json({ message: "Invalid user data" });
+    }
 };
 
-// Login
+// Login and redirect based on isAdmin status
 exports.login = async (req, res) => {
     const { email, password } = req.body;
 
+    const user = await User.findOne({ email });
+    console.log("User:",user);
+    console.log('Input Password:', user.password); // Log the input password
 
-    const user = await AuthUserModel.findOne({ email });
-
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-        return res.status(400).json({ error: 'Invalid email or password' });
-
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
     }
-    const token = jwt.sign({ _id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, {
-        expiresIn: '1h'
-    });
 
-    res.status(200).json({ token });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+        return res.status(400).json({ message: "Invalid credentials" });
+    }
 
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+
+    if (user.isAdmin) {
+        return res.status(200).json({
+            message: "Redirect to admin dashboard",
+            token,
+            isAdmin: true
+        });
+    } else {
+        return res.status(200).json({
+            message: "Redirect to user page",
+            token,
+            isAdmin: false
+        });
+    }
 };

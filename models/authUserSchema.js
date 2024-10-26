@@ -28,10 +28,6 @@ const authUserSchema = new mongoose.Schema({
             message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number.'
         }
     },
-    confirmPassword: {
-        type: String,
-        required: [true, 'Confirm password is required']
-    },
     isAdmin: {
         type: Boolean,
         default: false
@@ -43,18 +39,11 @@ const authUserSchema = new mongoose.Schema({
 // Hash password before saving
 authUserSchema.pre('save', async function (next) {
     if (!this.isModified('password')) return next();
-
-    // Check password confirmation
-    if (this.password !== this.confirmPassword) {
-        return next(new Error('Passwords do not match'));
-    }
-
-    // Hashing the password
+  
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    this.confirmPassword = undefined; // Remove confirmPassword from the document
     next();
-});
+  });
 
 const AuthUserModel = mongoose.model('AuthUsers', authUserSchema);
 module.exports = AuthUserModel;

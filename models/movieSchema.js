@@ -8,14 +8,8 @@ const movieSchema = new mongoose.Schema({
         maxlength: [100, 'Title must be less than 100 characters'],
     },
     poster: {
-        type: String,
-        required: [true, 'Poster URL is required'],
-        validate: {
-            validator: function (v) {
-                return /^(https?:\/\/.*\.(?:png|jpg|jpeg))$/i.test(v);
-            },
-            message: 'Poster must be a valid URL (PNG, JPG, JPEG)',
-        },
+        type: String, // Change this to accept file paths
+        required: [true, 'Poster path is required'],
     },
     description: {
         type: String,
@@ -32,23 +26,23 @@ const movieSchema = new mongoose.Schema({
             message: 'Language should be a non-empty array of strings',
         },
     },
-    genres: [{ // New field for genres
-        type: String,
+    genre: [{ // New field for genres
+        type: [String],
         required: [true, 'At least one genre is required'],
     }],
     isSubtitle: {
         type: Boolean,
         default: false,
     },
-    subtitle: [{
-        type: String,
+    subtitle: {
+        type: [String],
         validate: {
             validator: function (v) {
                 return Array.isArray(v) && v.every(item => typeof item === 'string');
             },
             message: 'Subtitle should be an array of strings',
         },
-    }],
+    },
 }, {
     timestamps: true,
 });

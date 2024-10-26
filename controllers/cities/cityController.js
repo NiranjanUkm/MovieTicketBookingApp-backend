@@ -4,17 +4,21 @@ const CityModel = require('../../models/citySchema');
 exports.addCity = async (req, res) => {
     try {
         const data = req.body;
-        if (!data || !data.Name) {
+        if (!data || !data.name) {
             return res.status(400).json({ error: 'City name is required' });
         }
 
-        const newCity = new CityModel(data);
+        const newCity = new CityModel({
+            name: data.name,
+            description: data.description || '' // Assign default value if not provided
+        });
         const savedCity = await newCity.save();
         res.status(201).json({ message: 'City added successfully', city: savedCity });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
+
 
 // Get all cities
 exports.getCities = async (req, res) => {

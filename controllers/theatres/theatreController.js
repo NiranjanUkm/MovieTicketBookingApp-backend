@@ -4,18 +4,17 @@ exports.addTheatre = async (req, res) => {
     try {
         const data = req.body;
 
-        if (!data) {
-            return res.status(400).json({ error: 'Data not found!' });
+        if (!data || !data.ticketPrice) {
+            return res.status(400).json({ error: 'Data not found or ticket price missing!' });
         }
-
-        const saveData = new TheatreModel(data);
 
         const existingTheatre = await TheatreModel.findOne({ name: data.name });
         if (existingTheatre) {
             return res.status(409).json({ error: 'Theatre with this name already exists' });
         }
 
-        await saveData.save();  
+        const saveData = new TheatreModel(data);
+        await saveData.save();
         res.status(201).json({ message: 'Theatre data saved successfully' });
 
     } catch (error) {
