@@ -21,14 +21,20 @@ exports.addCity = async (req, res) => {
 
 
 // Get all cities
+// Get all cities with associated theatres
 exports.getCities = async (req, res) => {
     try {
-        const cities = await CityModel.find();
+        const cities = await CityModel.find().populate({
+            path: 'theatres', // Field name to populate
+            select: 'name' // Only retrieve the theatre name
+            
+        });
         res.status(200).json(cities);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
+
 
 // Get a city by ID
 exports.getCityById = async (req, res) => {

@@ -11,8 +11,12 @@ const citySchema = new mongoose.Schema({
     description: {
         type: String,
         maxlength: [500, 'Description cannot exceed 500 characters'],
-        default: '', // Optional: Provide a default empty string
+        default: '',
     },
+    theatres: [{ 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Theatres' // Reference the exact model name of the theatre
+    }],
 }, {
     timestamps: true,
 });

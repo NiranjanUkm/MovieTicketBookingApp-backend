@@ -1,6 +1,19 @@
 const MovieModel = require('../../models/movieSchema');
+const cloudinary = require('../../utils/cloudinaryConfig'); // Import Cloudinary configuration
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
 
-// Create a new movie
+// Configure Cloudinary storage for multer
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'posters', // Folder in Cloudinary
+        allowed_formats: ['jpg', 'jpeg', 'png'], // Allowed formats
+    }
+});
+
+const upload = multer({ storage: storage });
+
 // Create a new movie
 exports.addMovie = async (req, res) => {
     try {
@@ -26,7 +39,7 @@ exports.addMovie = async (req, res) => {
             isSubtitle: data.isSubtitle === 'true', // Convert to boolean
             subtitle: subtitleArray, // Set subtitle as an array or undefined
             description: data.description.trim(),
-            poster: req.file.path, // Path to the uploaded file
+            poster: req.file.path, // Use Cloudinary URL as the poster path
         });
 
         await newMovie.save();
@@ -37,7 +50,6 @@ exports.addMovie = async (req, res) => {
         res.status(400).json({ error: error.message || 'Failed to add movie' });
     }
 };
-
 
 // Get all movies
 exports.getMovies = async (req, res) => {
@@ -77,6 +89,12 @@ exports.updateMovie = async (req, res) => {
         if (updatedData.title) updatedData.title = updatedData.title.trim();
         if (updatedData.description) updatedData.description = updatedData.description.trim();
 
+        // If there's a new poster file, upload it to Cloudinary
+        if (req.file) {
+            const uploadResponse = await cloudinary.uploader.upload(req.file.path, { folder: 'posters' });
+            updatedData.poster = uploadResponse.secure_url; // Update with Cloudinary URL
+        }
+
         const movie = await MovieModel.findByIdAndUpdate(id, updatedData, { new: true, runValidators: true });
 
         if (!movie) {
@@ -106,3 +124,6 @@ exports.deleteMovie = async (req, res) => {
         res.status(400).json({ error: error.message || 'Failed to delete movie' });
     }
 };
+
+// Export the multer upload for use in routes
+exports.upload = upload;

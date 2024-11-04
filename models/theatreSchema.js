@@ -12,11 +12,11 @@ const theatreSchema = new mongoose.Schema({
         required: [true, 'City is required'],
         ref: 'Cities', // Ensure this matches your City model
     },
-    beverages: {
+    beverage: { // Changed to match controller and frontend
         type: Boolean,
         default: false,
     },
-    movies: [{
+    runningMovies: [{ // Changed to match controller and frontend
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Movies',
     }],
