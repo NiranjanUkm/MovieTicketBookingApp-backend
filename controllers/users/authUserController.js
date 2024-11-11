@@ -47,36 +47,53 @@ exports.register = async (req, res) => {
     }
 };
 
-// Login and redirect based on isAdmin status
+
 exports.login = async (req, res) => {
-    const { email, password } = req.body;
+    try {
+        const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
-    console.log("User:",user);
-    console.log('Input Password:', user.password); // Log the input password
+        // Check if email and password are provided
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password are required" });
+        }
 
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
-    }
+        // Find the user by email
+        const user = await User.findOne({ email });
+        console.log("User:", user);
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-        return res.status(400).json({ message: "Invalid credentials" });
-    }
+        // If user is not found, return a 404 error
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+        console.log('Stored Password:', user.password); // Log the stored password
 
-    if (user.isAdmin) {
-        return res.status(200).json({
-            message: "Redirect to admin dashboard",
-            token,
-            isAdmin: true
-        });
-    } else {
-        return res.status(200).json({
-            message: "Redirect to user page",
-            token,
-            isAdmin: false
-        });
+        // Compare provided password with stored password hash
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+
+        // Generate JWT token
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+
+        // Check if user is an admin and respond accordingly
+        if (user.isAdmin) {
+            return res.status(200).json({
+                message: "Redirect to admin dashboard",
+                token,
+                isAdmin: true
+            });
+        } else {
+            return res.status(200).json({
+                message: "Redirect to user page",
+                token,
+                isAdmin: false
+            });
+        }
+    } catch (error) {
+        console.error("Login Error:", error);  // Log unexpected errors
+        res.status(500).json({ message: "Internal server error" });
     }
 };
+
