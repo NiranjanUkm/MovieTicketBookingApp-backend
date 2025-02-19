@@ -25,8 +25,8 @@ const createStripeSession = async (req, res) => {
         },
       ],
       mode: "payment",
-      success_url: "http://localhost:3000/payment-success",
-      cancel_url: "http://localhost:3000/payment-failed",
+      success_url: "http://localhost:5173/payment-success",
+      cancel_url: "http://localhost:5173/payment-failed",
     });
 
     res.json({ url: session.url });
