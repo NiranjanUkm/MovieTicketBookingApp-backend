@@ -14,13 +14,30 @@ const profileUserSchema = new mongoose.Schema({
     },
     phone: {
         type: String,
-        required: [true, 'Phone number is required'],
+        // required: [true, 'Phone number is required'],
         match: [/^\+?[1-9]\d{1,14}$/, 'Please enter a valid phone number'], // E.164 format
     },
     address: {
         type: String,
         default: '', // Default value for address
     },
+    city: {
+        type: String,
+        default: '',
+    },
+    state: {
+        type: String,
+        default: '',
+    },
+    country: {
+        type: String,
+        default: '',
+    },
+    pincode: {
+        type: String,
+        default: '',
+        match: [/^\d{5,6}$/, 'Please enter a valid pincode'], // Validates 5-6 digit pincodes
+    }
 }, {
     timestamps: true // Automatically create createdAt and updatedAt fields
 });
