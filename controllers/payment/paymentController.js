@@ -25,8 +25,8 @@ const createStripeSession = async (req, res) => {
         },
       ],
       mode: "payment",
-      success_url: "http://localhost:5173/payment-success",
-      cancel_url: "http://localhost:5173/payment-failed",
+      success_url: "https://cinehub-frontend-12.vercel.app/payment-success",
+      cancel_url: "https://cinehub-frontend-12.vercel.app/payment-failed",
     });
 
     res.json({ url: session.url });
