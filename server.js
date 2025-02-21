@@ -41,7 +41,8 @@ app.use(
       scriptSrc: [
         "'self'",
         "https://js.stripe.com",
-        "'unsafe-eval'", // Allow eval for Stripe.js
+        "'unsafe-eval'",
+        "https://vercel.live", // Add this if you want Vercel's feedback widget
       ],
     },
   })
