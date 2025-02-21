@@ -6,54 +6,75 @@ const mainRouter = require("./routes/mainRouter");
 const app = express();
 const cors = require("cors");
 const helmet = require("helmet");
-const axios = require("axios"); // Import axios
+const axios = require("axios");
 
-app.use(cors());
+const PORT = process.env.PORT || 4001; // Fallback port if not set in env
 
-PORT = process.env.PORT;
+// CORS configuration with dynamic origin
+const allowedOrigins = [
+  process.env.FRONTEND_URL || "http://localhost:5173", // Fallback to localhost for dev
+];
 
-require("./db/database");
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g., Postman) or if origin is in allowed list
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true, // Allow credentials (JWT tokens via Authorization header)
+  })
+);
 
+// Middleware
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Secure CSP settings for Stripe & hCaptcha
+// Secure CSP settings for Stripe & hCaptcha
 app.use(
-    helmet.contentSecurityPolicy({
-        directives: {
-            scriptSrc: [
-                "'self'",
-                "https://js.stripe.com",
-                "'unsafe-eval'", // Allow eval for Stripe.js
-            ],
-        },
-    })
+  helmet.contentSecurityPolicy({
+    directives: {
+      scriptSrc: [
+        "'self'",
+        "https://js.stripe.com",
+        "'unsafe-eval'", // Allow eval for Stripe.js
+      ],
+    },
+  })
 );
 
-// app.post("/apis/verify-captcha", async (req, res) => {
-//     const { hCaptchaToken } = req.body;
+// Database connection
+require("./db/database");
 
-//     console.log("Received hCaptcha Token:", hCaptchaToken);
-
-//     try {
-//         const response = await axios.post(
-//             "https://hcaptcha.com/siteverify",
-//             `secret=ES_70e56ba5c83a4c40b04832065d837f64&response=${hCaptchaToken}`,
-//             { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-//         );
-
-//         console.log("hCaptcha API Response:", response.data);
-
-//         res.send({ success: response.data.success });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).send({ error: "Failed to verify captcha" });
-//     }
-// });
-
+// Routes
 app.use("/", mainRouter);
 
+// Optional hCaptcha endpoint (uncomment if needed)
+// app.post("/apis/verify-captcha", async (req, res) => {
+//   const { hCaptchaToken } = req.body;
+
+//   console.log("Received hCaptcha Token:", hCaptchaToken);
+
+//   try {
+//     const response = await axios.post(
+//       "https://hcaptcha.com/siteverify",
+//       `secret=${process.env.HCAPTCHA_SECRET}&response=${hCaptchaToken}`, // Use env var for secret
+//       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+//     );
+
+//     console.log("hCaptcha API Response:", response.data);
+//     res.send({ success: response.data.success });
+//   } catch (error) {
+//     console.error("hCaptcha Error:", error);
+//     res.status(500).send({ error: "Failed to verify captcha" });
+//   }
+// });
+
+// Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon run",
-    "start": "node server.js", 
-    "build": "echo 'Building backend...' && npm install --only=production" 
+    "start": "node server.js",
+    "build": "echo 'Building backend...' && npm install --only=production"
   },
   "author": "Niranjan",
   "license": "ISC",
@@ -29,5 +29,8 @@
     "multer-storage-cloudinary": "^4.0.0",
     "nodemon": "^3.1.4",
     "stripe": "^17.6.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0"
   }
 }
