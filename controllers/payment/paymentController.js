@@ -7,9 +7,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const createStripeSession = async (req, res) => {
   try {
-    const { movieId, movieTitle, theatre, date, time, seats, totalAmount } = req.body;
+    const { movieId, movieTitle, theatre, date, time, seats, totalAmount, poster } = req.body;
 
-    console.log("Received payment payload:", req.body); // Debug
+    console.log("Received payment payload:", req.body);
 
     if (!movieId || !movieTitle || !seats) {
       return res.status(400).json({ error: "Missing required fields: movieId, movieTitle, seats" });
@@ -31,20 +31,21 @@ const createStripeSession = async (req, res) => {
         },
       ],
       mode: "payment",
-      success_url: `https://cinehub-frontend-12.vercel.app/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `https://cinehub-frontend-12.vercel.app/payment-failed`,
+      success_url: `http://localhost:5173/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `http://localhost:5173/payment-failed`,
       metadata: {
-        movieId, // Ensure this matches frontend expectation
+        movieId,
         movieTitle,
         theatre,
         date,
         time,
         seats: JSON.stringify(seats),
         totalAmount,
+        poster, // Save poster in metadata
       },
     });
 
-    console.log("Stripe session created with metadata:", session.metadata); // Debug
+    console.log("Stripe session created with metadata:", session.metadata);
 
     res.json({ url: session.url });
   } catch (error) {
@@ -56,7 +57,7 @@ const createStripeSession = async (req, res) => {
 const getStripeSession = async (req, res) => {
   try {
     const session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
-    console.log("Retrieved session metadata:", session.metadata); // Debug
+    console.log("Retrieved session metadata:", session.metadata);
     res.json({ metadata: session.metadata });
   } catch (error) {
     console.error("Error retrieving session:", error);

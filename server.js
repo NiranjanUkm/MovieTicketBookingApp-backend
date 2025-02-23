@@ -12,8 +12,8 @@ const PORT = process.env.PORT || 4001; // Fallback port if not set in env
 
 // CORS configuration with dynamic origin
 const allowedOrigins = [
-  process.env.FRONTEND_URL || "http://localhost:5173", // Fallback to localhost for dev
-  
+  // process.env.FRONTEND_URL ||  // Fallback to localhost for dev
+  "http://localhost:5173",
 ];
 
 app.use(
