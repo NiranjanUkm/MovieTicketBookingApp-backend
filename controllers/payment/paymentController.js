@@ -7,7 +7,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const createStripeSession = async (req, res) => {
   try {
-    const { selectedSeats, movieId, theatreId, slot, date, totalAmount } = req.body;
+    const { movieId, movieTitle, theatre, date, time, seats, totalAmount } = req.body;
+
+    console.log("Received payment payload:", req.body); // Debug
+
+    if (!movieId || !movieTitle || !seats) {
+      return res.status(400).json({ error: "Missing required fields: movieId, movieTitle, seats" });
+    }
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -16,18 +22,29 @@ const createStripeSession = async (req, res) => {
           price_data: {
             currency: "inr",
             product_data: {
-              name: "Movie Ticket",
-              description: `Seats: ${selectedSeats.join(", ")}, Date: ${date}, Slot: ${slot}`,
+              name: `${movieTitle} - ${theatre}`,
+              description: `Date: ${date}, Time: ${time}, Seats: ${seats.join(", ")}`,
             },
-            unit_amount: 150 * 100, // Convert ₹150 to paise
+            unit_amount: totalAmount * 100,
           },
-          quantity: selectedSeats.length,
+          quantity: 1,
         },
       ],
       mode: "payment",
-      success_url: "https://cinehub-frontend-12.vercel.app/payment-success",
-      cancel_url: "https://cinehub-frontend-12.vercel.app/payment-failed",
-    }); 
+      success_url: `http://localhost:5173/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `http://localhost:5173/payment-failed`,
+      metadata: {
+        movieId, // Ensure this matches frontend expectation
+        movieTitle,
+        theatre,
+        date,
+        time,
+        seats: JSON.stringify(seats),
+        totalAmount,
+      },
+    });
+
+    console.log("Stripe session created with metadata:", session.metadata); // Debug
 
     res.json({ url: session.url });
   } catch (error) {
@@ -36,4 +53,15 @@ const createStripeSession = async (req, res) => {
   }
 };
 
-module.exports = { createStripeSession };
+const getStripeSession = async (req, res) => {
+  try {
+    const session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
+    console.log("Retrieved session metadata:", session.metadata); // Debug
+    res.json({ metadata: session.metadata });
+  } catch (error) {
+    console.error("Error retrieving session:", error);
+    res.status(500).json({ error: "Failed to retrieve payment session" });
+  }
+};
+
+module.exports = { createStripeSession, getStripeSession };

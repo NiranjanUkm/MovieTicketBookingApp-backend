@@ -1,4 +1,4 @@
-const Order = require('../../models/orderSchema');
+const Order = require("../../models/orderSchema");
 
 // 📌 Book a Movie Ticket
 const createOrder = async (req, res) => {
@@ -7,6 +7,14 @@ const createOrder = async (req, res) => {
 
     if (!req.user) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    // Validate required fields
+    if (!movieId || !title || !seats || !Array.isArray(seats) || seats.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing or invalid required fields: movieId, title, seats",
+      });
     }
 
     console.log("Request body:", req.body); // Debug: Check incoming data
@@ -20,12 +28,12 @@ const createOrder = async (req, res) => {
       movieId,
       title,
       poster: poster || "/images/placeholder.jpg",
-      seats, // Now an array of strings
+      seats,
       bookingDate,
     });
 
     await newOrder.save();
-    console.log("Order saved:", newOrder); // Debug: Confirm save
+    console.log("Order saved:", newOrder);
 
     res.status(201).json({
       success: true,
@@ -33,11 +41,11 @@ const createOrder = async (req, res) => {
       order: newOrder,
     });
   } catch (err) {
-    console.error("Error placing order:", err);
+    console.error("Error placing order:", err.stack || err); // Log full stack trace
     res.status(500).json({
       success: false,
       message: "Failed to place order",
-      error: err.message || err,
+      error: err.message || "Internal server error",
     });
   }
 };
@@ -54,17 +62,14 @@ const getUserOrders = async (req, res) => {
 
     res.json({ success: true, orders });
   } catch (err) {
-    console.error("Error fetching orders:", err);
+    console.error("Error fetching orders:", err.stack || err);
     res.status(500).json({
       success: false,
       message: "Failed to fetch orders",
-      error: err.message || err,
+      error: err.message || "Internal server error",
     });
   }
 };
-
-
-// ... existing createOrder and getUserOrders ...
 
 // 📌 Cancel an Order
 const deleteOrder = async (req, res) => {
@@ -76,11 +81,13 @@ const deleteOrder = async (req, res) => {
     const orderId = req.params.id;
     const userId = req.user.id;
 
-    // Find and delete the order if it belongs to the user
     const order = await Order.findOneAndDelete({ _id: orderId, userId });
-    
+
     if (!order) {
-      return res.status(404).json({ success: false, message: "Order not found or not authorized to delete" });
+      return res.status(404).json({
+        success: false,
+        message: "Order not found or not authorized to delete",
+      });
     }
 
     console.log("Order cancelled:", order);
@@ -90,11 +97,11 @@ const deleteOrder = async (req, res) => {
       orderId,
     });
   } catch (err) {
-    console.error("Error cancelling order:", err);
+    console.error("Error cancelling order:", err.stack || err);
     res.status(500).json({
       success: false,
       message: "Failed to cancel order",
-      error: err.message || err,
+      error: err.message || "Internal server error",
     });
   }
 };
