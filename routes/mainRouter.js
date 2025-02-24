@@ -15,7 +15,6 @@ router.use('/theatres', theatreRouter);
 router.use("/api/payments", paymentRouter);
 router.use("/api/orders", orderRouter);
 
-
 // Centralized error handling for unhandled routes
 router.use((req, res, next) => {
     const error = new Error('Not Found');
