@@ -7,7 +7,18 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const createStripeSession = async (req, res) => {
   try {
-    const { movieId, movieTitle, theatre, date, time, seats, totalAmount, poster } = req.body;
+    const {
+      movieId,
+      movieTitle,
+      theatre,
+      date,
+      time,
+      seats,
+      totalAmount,
+      poster,
+      successUrl, // Added from payload
+      failureUrl, // Added from payload
+    } = req.body;
 
     console.log("Received payment payload:", req.body);
 
@@ -31,8 +42,8 @@ const createStripeSession = async (req, res) => {
         },
       ],
       mode: "payment",
-      success_url: `https://cinehub-frontend-12.vercel.app/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `https://cinehub-frontend-12.vercel.app/payment-failed`,
+      success_url: successUrl || `http://localhost:5173/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: failureUrl || `http://localhost:5173/payment-failed`, // Use failureUrl with params
       metadata: {
         movieId,
         movieTitle,
@@ -41,7 +52,7 @@ const createStripeSession = async (req, res) => {
         time,
         seats: JSON.stringify(seats),
         totalAmount,
-        poster, // Save poster in metadata
+        poster,
       },
     });
 
