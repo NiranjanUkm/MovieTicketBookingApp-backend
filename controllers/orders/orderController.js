@@ -4,17 +4,17 @@ const jsPDF = require("jspdf");
 // 📌 Book a Movie Ticket
 const createOrder = async (req, res) => {
   try {
-    const { movieId, title, poster, seats } = req.body;
+    const { movieId, title, poster, seats, theater, date, slot } = req.body;
 
     if (!req.user) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
     // Validate required fields
-    if (!movieId || !title || !seats || !Array.isArray(seats) || seats.length === 0) {
+    if (!movieId || !title || !seats || !Array.isArray(seats) || seats.length === 0 || !theater || !date || !slot) {
       return res.status(400).json({
         success: false,
-        message: "Missing or invalid required fields: movieId, title, seats",
+        message: "Missing or invalid required fields: movieId, title, seats, theater, date, slot",
       });
     }
 
@@ -30,6 +30,10 @@ const createOrder = async (req, res) => {
       title,
       poster: poster || "/images/placeholder.jpg",
       seats,
+      theater,
+      date,
+      slot,
+      price: seats.length * 150, // Assuming 150 per seat
       bookingDate,
     });
 
@@ -107,6 +111,33 @@ const deleteOrder = async (req, res) => {
   }
 };
 
+// 📌 Fetch Booked Seats for a Showtime
+const getBookedSeats = async (req, res) => {
+  try {
+    const { movieId, date, theater, slot } = req.query;
+
+    if (!movieId || !date || !theater || !slot) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required query parameters: movieId, date, theater, slot",
+      });
+    }
+
+    const orders = await Order.find({ movieId, date, theater, slot });
+    const bookedSeats = orders.flatMap((order) => order.seats);
+
+    res.json({ success: true, bookedSeats });
+  } catch (err) {
+    console.error("Error fetching booked seats:", err.stack || err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch booked seats",
+      error: err.message || "Internal server error",
+    });
+  }
+};
+
+// 📌 Generate Ticket PDF
 const getTicketPdf = async (req, res) => {
   try {
     const orderId = req.params.orderId;
@@ -127,9 +158,7 @@ const getTicketPdf = async (req, res) => {
     });
 
     const width = pdf.internal.pageSize.getWidth();
-    const height = pdf.internal.pageSize.getHeight();
 
-    // Simple ticket layout (customize as needed)
     pdf.setFontSize(16);
     pdf.text("CineHub Ticket", width / 2, 20, { align: "center" });
     pdf.setFontSize(10);
@@ -139,10 +168,10 @@ const getTicketPdf = async (req, res) => {
     pdf.setFontSize(14);
     pdf.text(order.title, 70, 50);
     pdf.setFontSize(12);
-    pdf.text(order.theatre, 70, 60, { italic: true });
+    pdf.text(order.theater, 70, 60, { italic: true }); // Use theater ID (map in frontend)
     pdf.setFontSize(10);
-    pdf.text(`Date: ${new Date(order.bookingDate).toLocaleDateString()}`, 70, 70);
-    pdf.text(`Time: ${order.bookingDate.toLocaleTimeString()}`, 70, 80); // Approximation
+    pdf.text(`Date: ${order.date}`, 70, 70); // Use date ID
+    pdf.text(`Time: ${order.slot}`, 70, 80); // Use slot ID
     pdf.text(`Seats: ${order.seats.join(", ")}`, 70, 90);
     pdf.setFontSize(14);
     pdf.text(`₹${order.price || "N/A"}`, width / 2, 120, { align: "center" });
@@ -156,4 +185,4 @@ const getTicketPdf = async (req, res) => {
   }
 };
 
-module.exports = { createOrder, getUserOrders, deleteOrder, getTicketPdf };
+module.exports = { createOrder, getUserOrders, deleteOrder, getTicketPdf, getBookedSeats };

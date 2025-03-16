@@ -7,7 +7,11 @@ const orderSchema = new mongoose.Schema(
     title: { type: String, required: true },
     poster: { type: String, required: true },
     bookingDate: { type: Date, default: Date.now },
-    seats: { type: [String], required: true } // Changed from Number to [String]
+    seats: { type: [String], required: true },
+    theater: { type: String, required: true }, // e.g., "theater-125"
+    date: { type: String, required: true },    // e.g., "date-123"
+    slot: { type: String, required: true },    // e.g., "slot-323"
+    price: { type: Number, default: 0 },       // Total amount
   },
   { timestamps: true }
 );

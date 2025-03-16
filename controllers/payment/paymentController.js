@@ -9,21 +9,21 @@ const createStripeSession = async (req, res) => {
   try {
     const {
       movieId,
-      movieTitle,
-      theatre,
+      title, // Changed from movieTitle
+      theater, // Changed from theatre
       date,
-      time,
+      slot, // Changed from time
       seats,
       totalAmount,
       poster,
-      successUrl, // Added from payload
-      failureUrl, // Added from payload
+      successUrl,
+      failureUrl,
     } = req.body;
 
     console.log("Received payment payload:", req.body);
 
-    if (!movieId || !movieTitle || !seats) {
-      return res.status(400).json({ error: "Missing required fields: movieId, movieTitle, seats" });
+    if (!movieId || !title || !seats) { // Changed movieTitle to title
+      return res.status(400).json({ error: "Missing required fields: movieId, title, seats" });
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -33,8 +33,8 @@ const createStripeSession = async (req, res) => {
           price_data: {
             currency: "inr",
             product_data: {
-              name: `${movieTitle} - ${theatre}`,
-              description: `Date: ${date}, Time: ${time}, Seats: ${seats.join(", ")}`,
+              name: `${title} - ${theater}`, // Changed movieTitle to title, theatre to theater
+              description: `Date: ${date}, Slot: ${slot}, Seats: ${seats.join(", ")}`, // Changed time to slot
             },
             unit_amount: totalAmount * 100,
           },
@@ -42,14 +42,14 @@ const createStripeSession = async (req, res) => {
         },
       ],
       mode: "payment",
-      success_url: successUrl || `https://cinehub-frontend-12.vercel.app/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: failureUrl || `https://cinehub-frontend-12.vercel.app/payment-failed`, // Use failureUrl with params
+      success_url: successUrl || `http://localhost:5173/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: failureUrl || `http://localhost:5173/payment-failed`,
       metadata: {
         movieId,
-        movieTitle,
-        theatre,
+        title, // Changed from movieTitle
+        theater, // Changed from theatre
         date,
-        time,
+        slot, // Changed from time
         seats: JSON.stringify(seats),
         totalAmount,
         poster,
